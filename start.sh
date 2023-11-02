@@ -1,5 +1,5 @@
 #设置COMFYUI所在父级目录
-export COMFYUI_FATHER=/gemini/code
+export COMFYUI_FATHER=
 
 #设置git镜像
 export GIT_MIRROR=https://hub.yzuu.cf
