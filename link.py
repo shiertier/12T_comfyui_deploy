@@ -5,7 +5,9 @@ import argparse
 parser = argparse.ArgumentParser(description="将指定目录下的内容挂载到目标目录中")
 parser.add_argument("-t", "--target", required=True, help="目标目录的路径")
 parser.add_argument("-s", "--source", help='源目录的路径。')
+parser.add_argument("-l", "--limit", action="store_true", help="限制只软链接已有目录中的文件，不创建缺失目录")
 parser.add_argument("-g", "--gemini", action="store_true", help="对驱动云数据集的支持。指定后，source应为 '/gemini/data-{i}/'的尾路径。[eg: -g -s models可以从三个数据集中挂载/gemini/data-{i}/models的文件到目标目录]")
+
 
 args = parser.parse_args()
 
@@ -42,7 +44,8 @@ def symlink_models(source_dir, target_dir):
         elif os.path.isdir(entry_path):
             if check(entry_path, target_path):
                 os.makedirs(target_path, exist_ok=True)
-                symlink_models(entry_path, target_path)
+                if not args.limit:  # 如果未设置--limit选项，则递归软链接子目录
+                    symlink_models(entry_path, target_path)
 
 if args.gemini:
     # 收集所有数据目录

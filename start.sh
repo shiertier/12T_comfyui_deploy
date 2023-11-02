@@ -17,12 +17,12 @@ export APT_GET_MIRROR=
 export PYTHON=python
 
 #设置COMFYUI启动指令
-export COMFYUI_COMMAND=--gpu-only --output-directory /gemini/code/output --temp-directory /gemini/code --input-directory /gemini/code/input --force-fp16 --fp16-vae --listen
+export COMFYUI_COMMAND="--gpu-only --output-directory /gemini/code/output --temp-directory /gemini/code --input-directory /gemini/code/input --force-fp16 --fp16-vae --listen"
 
 #符号链接文件夹（限linux）
 #需要自己更改对应位置的文件夹代码
 #一般用于挂载数据集或单模型文件夹多ui使用
-export SYMBOLIC_LINK=false
+export SYMBOLIC_LINK=false1
 
 #更新COMFYUI
 export UPDATE_COMFYUI=false
@@ -33,6 +33,9 @@ export UPDATE_NODES=false
 export COMFYUI_PATH="$COMFYUI_FATHER/ComfyUI"
 export NODES_PATH="$COMFYUI_PATH/custom_nodes"
 export MANAGER_PATH="$NODES_PATH/ComfyUI-Manager"
+
+script_path=$(readlink -f "$0")
+script_dir=$(dirname "$script_path")
 
 # 1.部署项目
 if [ -n "$GIT_MIRROR" ]; then
@@ -57,8 +60,15 @@ if [ ! -d "$COMFYUI_PATH" ]; then
 fi
 
 cd "$NODES_PATH" || exit 1
-git clone https://github.com/ltdrdata/ComfyUI-Manager || exit 1
-git clone https://github.com/AIGODLIKE/AIGODLIKE-ComfyUI-Translation || exit 1
+
+if [ ! -d "$MANAGER_PATH" ]; then
+  git clone https://github.com/ltdrdata/ComfyUI-Manager || exit 1
+fi
+
+if [ ! -d "$NODES_PATH/AIGODLIKE-ComfyUI-Translation" ]; then
+  git clone https://github.com/AIGODLIKE/AIGODLIKE-ComfyUI-Translation || exit 1
+fi
+
 echo "项目拷贝完成"
 
 
@@ -82,6 +92,8 @@ echo "依赖安装完成"
 
 
 # 3.增设插件
+
+cd $script_dir
 if [ -n "$GIT_MIRROR" ]; then
   python git_clone_nodes.py -m "$GIT_MIRROR" || exit 1
 else
@@ -98,6 +110,7 @@ if [ "$SYMBOLIC_LINK" != "false" ]; then
   $PYTHON removelink.py -p $COMFYUI_PATH || exit 1
   $PYTHON link.py -g -t $COMFYUI_PATH/models -s models || exit 1
   $PYTHON link.py -g -t $COMFYUI_PATH -s ComfyUI || exit 1
+  rm -rf 
   echo "数据挂载"
 fi
 
@@ -112,7 +125,7 @@ fi
 
 if [ "$UPDATE_COMFYUI" != "false" ] && [ "$UPDATE_NODES" != "false" ]; then
   echo "更新custom_nodes目录下的文件夹..."
-  cd /ComfyUI/custom_nodes || exit 1
+  cd $NODES_PATH || exit 1
   for folder in */; do
     folder=${folder%/}
     echo "更新文件夹: $folder"
@@ -122,5 +135,7 @@ fi
 
 
 # 6.启动项目
+
+[ ! -e $NODES_PATH/comfyui_controlnet_aux/__init__.py ] && rm -rf $NODES_PATH/comfyui_controlnet_aux; [ ! -e $NODES_PATH/ComfyUI-WD14-Tagger/__init__.py ] && rm -rf $NODES_PATH/ComfyUI-WD14-Tagger
 cd $COMFYUI_PATH || exit 1
 $PYTHON main.py $COMFYUI_COMMAND || exit 1

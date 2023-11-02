@@ -34,7 +34,7 @@ print("Starting git clone operation")
 
 lines = content.split('\n')
 for line in lines:
-    if line.strip() != '':
+    if line.strip().startswith("https://"):
         command = f"git clone {line}"
         try:
             subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
