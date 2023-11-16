@@ -1,0 +1,2 @@
+# 12T_comfyui_deploy
+使用各种镜像源，在中国网络环境下的linux云服务器ComfyUI部署
